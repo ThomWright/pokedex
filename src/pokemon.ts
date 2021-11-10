@@ -2,7 +2,7 @@ import {RequestHandler, Router} from "express"
 import got from "got"
 
 /**
- * References another resource.
+ * References a named resource.
  *
  * @see https://pokeapi.co/docs/v2#namedapiresource
  */
@@ -40,7 +40,11 @@ interface PokemonResource {
 
 const POKE_API_BASE = "https://pokeapi.co/api/v2"
 
-const GetPokemon: RequestHandler = async (req, res) => {
+const GetPokemon: RequestHandler<
+  {pokemon_name: string},
+  PokemonResource,
+  void
+> = async (req, res) => {
   const requestedPokemonName = req.params.pokemon_name
 
   const pokemonResponse: PokemonSpeciesResponseBody = await got
@@ -49,8 +53,6 @@ const GetPokemon: RequestHandler = async (req, res) => {
     })
     .json()
 
-  // Get the first flavor text in English, from any version.
-  // Assume this works as a "description".
   const description = pokemonResponse.flavor_text_entries.find(
     (entry) => entry.language.name === "en",
   )
