@@ -9,9 +9,13 @@ describe("GET /pokemon/:pokemon_name", () => {
       .get(`http://localhost:${EXPOSED_PORT}/pokemon/${testPokemon}`)
       .json()
 
-    expect(responseBody).to.have.property("name", testPokemon)
-    expect(responseBody).to.have.property("description")
-    expect(responseBody).to.have.property("habitat")
-    expect(responseBody).to.have.property("isLegendary")
+    expect(responseBody, "response body").to.have.property("name", testPokemon)
+    expect(responseBody, "response body")
+      .to.have.property("description")
+      .which.equals(
+        "It was created by a scientist after years of horrific gene splicing and DNA engineering experiments.",
+      )
+    expect(responseBody, "response body").to.have.property("habitat")
+    expect(responseBody, "response body").to.have.property("isLegendary")
   })
 })

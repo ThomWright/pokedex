@@ -53,18 +53,40 @@ const GetPokemon: RequestHandler<
     })
     .json()
 
-  const description = pokemonResponse.flavor_text_entries.find(
+  const flavourTextEntry = pokemonResponse.flavor_text_entries.find(
     (entry) => entry.language.name === "en",
   )
+  const description =
+    flavourTextEntry != null
+      ? replaceControlCharacters(flavourTextEntry.flavor_text)
+      : null
 
   const responseBody: PokemonResource = {
     name: pokemonResponse.name,
-    description: description?.flavor_text ?? null,
+    description,
     habitat: pokemonResponse.habitat?.name ?? null,
     isLegendary: pokemonResponse.is_legendary,
   }
 
   res.send(responseBody)
+}
+
+/**
+ * Replaces any control characters with a single space.
+ *
+ * It seems some text coming from the PokeAPI includes strange control characters, including:
+ * - Line Feed (U+000A)
+ * - Form Feed (U+000C)
+ *
+ * Weird!
+ */
+export function replaceControlCharacters(string: string): string {
+  return (
+    string
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
+      .replace(/  +/g, " ")
+  )
 }
 
 export function register(app: Router) {
