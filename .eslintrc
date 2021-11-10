@@ -20,6 +20,9 @@
     "node": true
   },
   "rules": {
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+
     "curly": ["warn", "all"],
     "@typescript-eslint/require-await": "off",
     "@typescript-eslint/array-type": ["error", {"default": "generic"}],
