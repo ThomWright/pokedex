@@ -84,8 +84,7 @@ export function replaceControlCharacters(string: string): string {
   return (
     string
       // eslint-disable-next-line no-control-regex
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
-      .replace(/  +/g, " ")
+      .replace(/[\u0000-\u001F\u007F-\u009F]+/g, " ")
   )
 }
 
