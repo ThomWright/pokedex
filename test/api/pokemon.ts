@@ -10,12 +10,11 @@ describe("GET /pokemon/:pokemon_name", () => {
       .json()
 
     expect(responseBody, "response body").to.have.property("name", testPokemon)
-    expect(responseBody, "response body")
-      .to.have.property("description")
-      .which.equals(
-        "It was created by a scientist after years of horrific gene splicing and DNA engineering experiments.",
-      )
-    expect(responseBody, "response body").to.have.property("habitat")
-    expect(responseBody, "response body").to.have.property("isLegendary")
+    expect(responseBody, "response body").to.have.property(
+      "description",
+      "It was created by a scientist after years of horrific gene splicing and DNA engineering experiments.",
+    )
+    expect(responseBody, "response body").to.have.property("habitat", "rare")
+    expect(responseBody, "response body").to.have.property("isLegendary", true)
   })
 })
