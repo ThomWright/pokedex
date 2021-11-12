@@ -1,5 +1,5 @@
-import {RequestHandler, Router} from "express"
 import got from "got"
+import {PokemonResource} from "./types"
 
 /**
  * References a named resource.
@@ -28,27 +28,13 @@ interface PokemonSpeciesResponseBody {
   }>
 }
 
-/**
- * Represents a Pokemon returned from our API.
- */
-interface PokemonResource {
-  name: string
-  description: string | null
-  habitat: string | null
-  isLegendary: boolean
-}
-
 const POKE_API_BASE = "https://pokeapi.co/api/v2"
 
-const GetPokemon: RequestHandler<
-  {pokemon_name: string},
-  PokemonResource,
-  void
-> = async (req, res) => {
-  const requestedPokemonName = req.params.pokemon_name
-
+export async function getPokemonInfo(
+  pokemonName: string,
+): Promise<PokemonResource> {
   const pokemonResponse: PokemonSpeciesResponseBody = await got
-    .get(POKE_API_BASE + "/pokemon-species/" + requestedPokemonName, {
+    .get(POKE_API_BASE + "/pokemon-species/" + pokemonName, {
       throwHttpErrors: true,
     })
     .json()
@@ -59,14 +45,12 @@ const GetPokemon: RequestHandler<
   const description =
     flavourTextEntry != null ? onSingleLine(flavourTextEntry.flavor_text) : null
 
-  const responseBody: PokemonResource = {
+  return {
     name: pokemonResponse.name,
     description,
     habitat: pokemonResponse.habitat?.name ?? null,
     isLegendary: pokemonResponse.is_legendary,
   }
-
-  res.send(responseBody)
 }
 
 /**
@@ -87,9 +71,4 @@ export function onSingleLine(string: string): string {
       // eslint-disable-next-line no-control-regex
       .replace(/[\f\r\n]+/g, " ")
   )
-}
-
-export function register(app: Router) {
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  app.get("/pokemon/:pokemon_name", GetPokemon)
 }

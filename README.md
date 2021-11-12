@@ -36,6 +36,18 @@ Run the tests:
 
 ## Productionising
 
+### Structure
+
+Normally I favour structuring services by [separating by feature (as opposed to type or layer)](https://phauer.com/2020/package-by-feature/) at a high level, and within each feature having several layers:
+
+- Transport - transport specific code and little else, e.g. defining HTTP APIs
+- Business logic - reusable logic, no transport specific code here
+- Persistence - Data storage code, e.g. SQL, transactions
+
+In an app this small, I was tempted to keep minimal structure, since it keeps things concise and readable. A little structure felt appropriate though. It sets a direction for future evolution.
+
+### TODO:
+
 - better type safety
   - inputs should be validated and type checked
 - health checks
@@ -62,6 +74,10 @@ Run the tests:
 - structure
   - if this was bigger, with more features and/or more non-HTTP business logic, then split up appropriately
 - cache responses from PokeAPI
+  - and responses from the translation API
+  - decrease chance of rate limiting
+  - assume data relatively static, long TTL
+  - start in-process, then move to e.g. Redis
 - use client library?
   - has built in caching, but no types (yet!)
 - better error handling!

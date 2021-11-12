@@ -1,5 +1,5 @@
 import * as express from "express"
-import {register as registerPokemonRoutes} from "./pokemon"
+import {register as registerPokemonRoutes} from "./pokemon/http"
 
 const app = express()
 const port = 3000
