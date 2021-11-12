@@ -27,7 +27,7 @@ describe("Replacing control characters", () => {
     })
   })
 
-  it("should preserve multiple space characters", () => {
+  it("should preserve multiple consecutive space characters", () => {
     const actualOutput = replaceControlCharacters("Hello  world")
     expect(actualOutput).to.equal("Hello  world")
   })
