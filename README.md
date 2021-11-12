@@ -4,23 +4,25 @@
 
 ### Dependencies
 
-- Node.js 14.7
-- NPM 6.14
-- (Optional) Docker - I'm running version 20.10.7
+- Docker - I'm running version 20.10.7
+- (Optional) Node.js 14.7
+- (Optional) NPM 6.14
+
+The optional dependencies are for developing and testing.
 
 If you want to run Node.js and don't have it installed, I recommend trying [nvm](https://github.com/nvm-sh/nvm).
 
 ### Run
 
+Using Docker:
+
+- Build: `docker build -t pokedex .`
+  - Or: `npm run build:docker` if you have NPM installed
+- Run: `docker run --rm pokedex`
+
+Or just using Node.js directly:
+
 - Install dependencies: `npm ci`
-
-Then, either use Docker:
-
-- Build: `docker build -t pokedex-thom .`
-- Run: `docker run --rm pokedex-thom`
-
-Or just Node.js directly:
-
 - Run: `npm run start-ts`
 
 ### Test
@@ -29,7 +31,7 @@ Sanity check: `curl localhost:3000/pokemon/ditto` TODO:
 
 Run the tests:
 
-- unit tests: `npm run test:unit`
+- Unit tests: `npm run test:unit`
 - API tests: `npm run test:api`
 
 ## Productionising
@@ -37,6 +39,7 @@ Run the tests:
 - better type safety
   - inputs should be validated and type checked
 - health checks
+  - separate live/ready if necessary
 - CI
 - integration tests
   - start the service using Docker
@@ -53,17 +56,18 @@ Run the tests:
   - should configure e.g. port, host to bind to, external API host names
 - tests
   - the tests we want highly depend on what kind of code we're writing
+  - unit, integration, E2E, contract, property...
 - license checking
   - have we used any libraries with problematic GPL licenses?
 - structure
   - if this was bigger, with more features and/or more non-HTTP business logic, then split up appropriately
-- TODO: could build the application inside Docker so y'all don't need to install Node.js...
-  - possibly using a multi-stage build
 - cache responses from PokeAPI
 - use client library?
   - has built in caching, but no types (yet!)
 - better error handling!
-- API documentation
+- documentation
+  - API docs
+  - internal docs, e.g. structure, purpose, how the tests work etc.
 
 ## Notes
 

@@ -2,10 +2,7 @@
 .editorconfig
 .env
 .eslintrc
-.git
 .gitignore
 .prettierrc
-src
 test
-tsconfig*
 tmp
