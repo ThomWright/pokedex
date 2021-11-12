@@ -1,13 +1,13 @@
 import {expect} from "chai"
-import {replaceControlCharacters} from "../pokemon"
+import {onSingleLine} from "../pokemon"
 
-describe("Replacing control characters", () => {
+describe("Replacing newline characters", () => {
   ;[
     {name: "Empty", input: "", output: ""},
     {name: "Line feed", input: "Hello\nworld", output: "Hello world"},
     {name: "Windows new line", input: "Hello\r\nworld", output: "Hello world"},
     {
-      name: "Multiple control characters in a row",
+      name: "Multiple newline characters in a row",
       input: "Hello\f\nworld",
       output: "Hello world",
     },
@@ -20,15 +20,15 @@ describe("Replacing control characters", () => {
     },
   ].forEach(({name, input, output}) => {
     context(name, () => {
-      it("should output text with no control characters, and only single spaces", () => {
-        const actualOutput = replaceControlCharacters(input)
+      it("should output text with no newline characters, and only single spaces", () => {
+        const actualOutput = onSingleLine(input)
         expect(actualOutput).to.equal(output)
       })
     })
   })
 
   it("should preserve multiple consecutive space characters", () => {
-    const actualOutput = replaceControlCharacters("Hello  world")
+    const actualOutput = onSingleLine("Hello  world")
     expect(actualOutput).to.equal("Hello  world")
   })
 })

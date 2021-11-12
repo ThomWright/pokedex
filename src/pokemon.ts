@@ -57,9 +57,7 @@ const GetPokemon: RequestHandler<
     (entry) => entry.language.name === "en",
   )
   const description =
-    flavourTextEntry != null
-      ? replaceControlCharacters(flavourTextEntry.flavor_text)
-      : null
+    flavourTextEntry != null ? onSingleLine(flavourTextEntry.flavor_text) : null
 
   const responseBody: PokemonResource = {
     name: pokemonResponse.name,
@@ -72,19 +70,22 @@ const GetPokemon: RequestHandler<
 }
 
 /**
- * Replaces any control characters with a single space.
+ * Replaces any "newline" characters with a single space.
  *
  * It seems some text coming from the PokeAPI includes strange control characters, including:
  * - Line Feed (U+000A)
  * - Form Feed (U+000C)
  *
  * Weird!
+ *
+ * Carriage return (U+000D) has also been included here, for completeness, in case Windows-style
+ * new lines ever appear.
  */
-export function replaceControlCharacters(string: string): string {
+export function onSingleLine(string: string): string {
   return (
     string
       // eslint-disable-next-line no-control-regex
-      .replace(/[\u0000-\u001F\u007F-\u009F]+/g, " ")
+      .replace(/[\f\r\n]+/g, " ")
   )
 }
 
