@@ -36,6 +36,8 @@ Run the tests:
 
 ## Productionising
 
+A discussion of how I would prepare this for production, and also for future evolution (if necessary).
+
 ### Structure
 
 Normally I favour structuring services by [separating by feature (as opposed to type or layer)](https://phauer.com/2020/package-by-feature/) at a high level, and within each feature having several layers:
@@ -46,7 +48,24 @@ Normally I favour structuring services by [separating by feature (as opposed to 
 
 In an app this small, I was tempted to keep minimal structure, since it keeps things concise and readable. A little structure felt appropriate though. It sets a direction for future evolution.
 
-### TODO:
+### Error handling
+
+This is a big one I missed out. We should handle errors to the external APIs, including:
+
+- network errors
+- HTTP error status codes (especially HTTP 429 Too Many Requests from the translation API)
+
+We should handle these in our logic, and return e.g. `Promise<Result<PokemonResource, SomeError>>`, where:
+
+- `Result<S, E>` is either a success or error value
+- `SomeError` contains enough information for the HTTP layer to return an appropriate status code
+
+We should also better handle the case where we can't find an English `flavor_text`, or if other data coming from the API is null. It's easy to assume it'll always be there, but I don't know if it's guaranteed.
+
+TODO:
+For now, I just made the executive decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
+
+### TODO: Document these things
 
 - better type safety
   - inputs should be validated and type checked

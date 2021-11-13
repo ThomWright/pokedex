@@ -3,7 +3,7 @@
  */
 export interface PokemonResource {
   name: string
-  description: string | null
+  description: string
   habitat: string | null
   isLegendary: boolean
 }

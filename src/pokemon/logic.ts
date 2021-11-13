@@ -1,49 +1,22 @@
-import got from "got"
+import {Language, translateText} from "../translation-api-client"
+import {getPokemonSpecies} from "./poke-api-client"
 import {PokemonResource} from "./types"
-
-/**
- * References a named resource.
- *
- * @see https://pokeapi.co/docs/v2#namedapiresource
- */
-interface NamedApiResource {
-  name: string
-  url: string
-}
-
-/**
- * Not the full body, but the parts we care about.
- *
- * @see https://pokeapi.co/docs/v2#pokemon-species
- */
-interface PokemonSpeciesResponseBody {
-  id: number
-  name: string
-  is_legendary: boolean
-  habitat: NamedApiResource | null
-  flavor_text_entries: Array<{
-    flavor_text: string
-    language: NamedApiResource
-    version: NamedApiResource
-  }>
-}
-
-const POKE_API_BASE = "https://pokeapi.co/api/v2"
 
 export async function getPokemonInfo(
   pokemonName: string,
 ): Promise<PokemonResource> {
-  const pokemonResponse: PokemonSpeciesResponseBody = await got
-    .get(POKE_API_BASE + "/pokemon-species/" + pokemonName, {
-      throwHttpErrors: true,
-    })
-    .json()
+  const pokemonResponse = await getPokemonSpecies(pokemonName)
 
   const flavourTextEntry = pokemonResponse.flavor_text_entries.find(
     (entry) => entry.language.name === "en",
   )
-  const description =
-    flavourTextEntry != null ? onSingleLine(flavourTextEntry.flavor_text) : null
+
+  if (flavourTextEntry == null) {
+    // TODO: handle this better
+    throw new Error("No English flavor text found")
+  }
+
+  const description = onSingleLine(flavourTextEntry.flavor_text)
 
   return {
     name: pokemonResponse.name,
@@ -53,16 +26,37 @@ export async function getPokemonInfo(
   }
 }
 
+export async function getTranslatedPokemonInfo(
+  pokemonName: string,
+): Promise<PokemonResource> {
+  const pokemon = await getPokemonInfo(pokemonName)
+
+  const language: Language =
+    pokemon.habitat === "cave" || pokemon.isLegendary ? "yoda" : "shakespeare"
+
+  try {
+    const translatedText = await translateText(pokemon.description, language)
+    return {
+      ...pokemon,
+      description: translatedText,
+    }
+  } catch (error) {
+    console.error("Unable to translate", error)
+    // Return original description if we were unable to translate the text
+    return pokemon
+  }
+}
+
 /**
  * Replaces any "newline" characters with a single space.
  *
- * It seems some text coming from the PokeAPI includes strange control characters, including:
- * - Line Feed (U+000A)
- * - Form Feed (U+000C)
+ * It seems some text coming from the PokeAPI includes "new line", including:
+ * - Line Feed (U+000A) (\n)
+ * - Form Feed (U+000C) (\f)
  *
  * Weird!
  *
- * Carriage return (U+000D) has also been included here, for completeness, in case Windows-style
+ * Carriage return (U+000D) (\r) has also been included here, for completeness, in case Windows-style
  * new lines ever appear.
  */
 export function onSingleLine(string: string): string {
