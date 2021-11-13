@@ -7,11 +7,16 @@ const GetAPokemon: RequestHandler<
   PokemonResource,
   void
 > = async (req, res) => {
-  const requestedPokemonName = req.params.pokemon_name
+  try {
+    const requestedPokemonName = req.params.pokemon_name
 
-  const pokemon = await getPokemonInfo(requestedPokemonName)
+    const pokemon = await getPokemonInfo(requestedPokemonName)
 
-  res.send(pokemon)
+    res.send(pokemon)
+  } catch (error) {
+    console.error("Error getting a pokemon", error)
+    res.status(500).send()
+  }
 }
 
 const GetATranslatedPokemon: RequestHandler<
@@ -19,11 +24,16 @@ const GetATranslatedPokemon: RequestHandler<
   PokemonResource,
   void
 > = async (req, res) => {
-  const requestedPokemonName = req.params.pokemon_name
+  try {
+    const requestedPokemonName = req.params.pokemon_name
 
-  const pokemon = await getTranslatedPokemonInfo(requestedPokemonName)
+    const pokemon = await getTranslatedPokemonInfo(requestedPokemonName)
 
-  res.send(pokemon)
+    res.send(pokemon)
+  } catch (error) {
+    console.error("Error getting a translated pokemon", error)
+    res.status(500).send()
+  }
 }
 
 export function register(app: Router) {
