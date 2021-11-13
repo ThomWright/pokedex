@@ -1,5 +1,7 @@
 # Pokemon
 
+A simple service which serves up information about Pokemon, included translated descriptions.
+
 ## Running instructions
 
 ### Dependencies
@@ -34,6 +36,41 @@ Run the tests:
 - Unit tests: `npm run test:unit`
 - API tests: `npm run test:api`
 
+## Design decisions
+
+**Language:** TypeScript - currently the language I'm most familiar with \
+**HTTP server:** Express.js - probably the most popular HTTP server in Node.js land
+
+I've adapted some of the standard boilerplate I've developed to use at Candide to get me started.
+
+This includes:
+
+- linting
+- formatting
+- unit tests
+- API tests (start the service and test it, black box style)
+- generating a version.json file containing the git short hash (useful for sanity checking!)
+
+### Returning minimum data
+
+Generally I wouldn't include extra data surplus to requirements, unless I had good reason to believe it would be useful. It's likely to be wasted effort, or worse: could be the wrong thing entirely. We might end up needing to support the decision indefinitely for backwards-compatibility reasons.
+
+### PokeAPI response types
+
+The [PokeAPI docs](https://pokeapi.co/docs/v2) do not specify which fields can be null, as far as I can see. `habitat` _can_ apparently be null, which is the only one I've observered.
+
+### Testing
+
+I have written minimal unit tests. There is more code I'd like to cover with tests (see below), but I figured the most risk here is at the integration points:
+
+- our own exposed HTTP APIs
+- integrating with the external APIs
+
+So I decided spending some time setting up some API tests (or integration tests) was a better investment of my time.
+
+That said, while building and running the application in a Docker container gave me confidence that it worked as a whole, the feedback cycle is too slow, so the DX isn't as good as I'd like.
+
+I would consider writing some in-process HTTP test using e.g. [superagent](https://www.npmjs.com/package/supertest), which could give similar coverage with a much quicker feedback cycle.
 ## Productionising
 
 A discussion of how I would prepare this for production, and also for future evolution (if necessary).
@@ -50,7 +87,7 @@ In an app this small, I was tempted to keep minimal structure, since it keeps th
 
 ### Error handling
 
-This is a big one I missed out. We should handle errors to the external APIs, including:
+This is a big one I missed out. We should handle errors from the external APIs, including:
 
 - network errors
 - HTTP error status codes (especially HTTP 429 Too Many Requests from the translation API)
@@ -64,6 +101,19 @@ We should also better handle the case where we can't find an English `flavor_tex
 
 TODO:
 For now, I just made the executive decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
+
+### Testing
+
+#### Unit testing
+
+As noted, I have fairly sparse unit tests here.
+
+The code which I think should have some unit tests are the functions in `src/pokemon/logic.ts`:
+
+- `getPokemonInfo`
+- `getTranslatedPokemonInfo`
+
+To do so, I'd refactor to pass in mock API clients which return dummy data, to make this easier to test without external resources.
 
 ### TODO: Document these things
 
@@ -103,35 +153,3 @@ For now, I just made the executive decision to just throw if any of these errors
 - documentation
   - API docs
   - internal docs, e.g. structure, purpose, how the tests work etc.
-
-## Notes
-
-**Language:** TypeScript - currently the language I'm most familiar with
-**HTTP server:** Express.js - probably the most popular HTTP server in Node.js land
-
-I've adapted some of the standard boilerplate I've developed to use at Candide to get me started.
-
-This includes:
-
-- linting
-- formatting
-- unit tests
-- API tests (start the service and test it, black box style)
-- generating a version.json file containing the git short hash (useful for sanity checking!)
-
-### Design decisions
-
-- The [PokeAPI docs](https://pokeapi.co/docs/v2) do not specify which fields can be null, as far as I can see. `habitat` _can_ apparently be null, which is the only one I've noticed. TODO:
-- Only returning the minimum information:
-  - Generally I wouldn't include extra data surplus to requirements, unless I had good reason to believe it would be useful.
-  - It's likely to be wasted effort, or worse: could be the wrong thing entirely. We might need to support the decision indefinitely for backwards-compatibility reasons.
-
-### Testing
-
-- minimal unit tests, most risk here is at the integration points
-- the tests are more complicated than I'd like, but they gave me the confidence I'm after
-- could consider some in-process HTTP testing using e.g. using [superagent](https://www.npmjs.com/package/supertest)
-  - would be quicker, fewer moving parts, less complex
-  - would arguably be nice to not need Docker as part of the main tests, and just have a single smoke test for it
-  - but would give less confidence that the build Docker image worked correctly
-  - building the Docker image every time is sloooooow, not a good DX
