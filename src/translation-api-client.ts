@@ -1,4 +1,4 @@
-import got from "got"
+import got, {Response} from "got"
 
 export type Language = "yoda" | "shakespeare"
 
@@ -21,16 +21,22 @@ export async function translateText(
   text: string,
   language: Language,
 ): Promise<string> {
-  const responseBody: ResponseBody = await got
-    .get(`${TRANSLATION_API_BASE}/${language}`, {
-      searchParams: {
-        text,
-      },
-      throwHttpErrors: true,
-    })
-    .json()
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const response = (await got.get(`${TRANSLATION_API_BASE}/${language}`, {
+    searchParams: {
+      text,
+    },
+    throwHttpErrors: false,
+    responseType: "json",
+  })) as Response<ResponseBody>
 
-  console.log(responseBody)
+  if (response.statusCode === 200) {
+    return response.body.contents.translated
+  }
 
-  return responseBody.contents.translated
+  throw new Error(
+    `Unexpected status code from the Fun Translations API: ${
+      response.statusCode
+    } ${response.statusMessage ?? ""}`,
+  )
 }

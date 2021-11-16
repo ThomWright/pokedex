@@ -7,15 +7,20 @@ const GetAPokemon: RequestHandler<
   PokemonResource,
   void
 > = async (req, res) => {
+  const requestedPokemonName = req.params.pokemon_name
   try {
-    const requestedPokemonName = req.params.pokemon_name
-
     const pokemon = await getPokemonInfo(requestedPokemonName)
+
+    if (pokemon == null) {
+      res.status(404)
+    }
 
     res.send(pokemon)
   } catch (error) {
-    console.error("Error getting a pokemon", error)
-    res.status(500).send()
+    console.error(`Error getting a pokemon: ${requestedPokemonName}`, error)
+    if (!res.headersSent) {
+      res.status(500).send()
+    }
   }
 }
 
@@ -24,15 +29,23 @@ const GetATranslatedPokemon: RequestHandler<
   PokemonResource,
   void
 > = async (req, res) => {
+  const requestedPokemonName = req.params.pokemon_name
   try {
-    const requestedPokemonName = req.params.pokemon_name
-
     const pokemon = await getTranslatedPokemonInfo(requestedPokemonName)
+
+    if (pokemon == null) {
+      res.status(404)
+    }
 
     res.send(pokemon)
   } catch (error) {
-    console.error("Error getting a translated pokemon", error)
-    res.status(500).send()
+    console.error(
+      `Error getting a translated pokemon: ${requestedPokemonName}`,
+      error,
+    )
+    if (!res.headersSent) {
+      res.status(500).send()
+    }
   }
 }
 

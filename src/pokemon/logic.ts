@@ -4,8 +4,12 @@ import {PokemonResource} from "./types"
 
 export async function getPokemonInfo(
   pokemonName: string,
-): Promise<PokemonResource> {
+): Promise<PokemonResource | undefined> {
   const pokemonResponse = await getPokemonSpecies(pokemonName)
+
+  if (pokemonResponse == null) {
+    return undefined
+  }
 
   const flavourTextEntry = pokemonResponse.flavor_text_entries.find(
     (entry) => entry.language.name === "en",
@@ -28,8 +32,12 @@ export async function getPokemonInfo(
 
 export async function getTranslatedPokemonInfo(
   pokemonName: string,
-): Promise<PokemonResource> {
+): Promise<PokemonResource | undefined> {
   const pokemon = await getPokemonInfo(pokemonName)
+
+  if (pokemon == null) {
+    return undefined
+  }
 
   const language: Language =
     pokemon.habitat === "cave" || pokemon.isLegendary ? "yoda" : "shakespeare"
