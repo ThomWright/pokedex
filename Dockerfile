@@ -5,12 +5,15 @@ RUN apk add --update \
   git
 
 WORKDIR /app
-COPY package* ./
+
 COPY tsconfig* ./
 COPY .git/ ./.git
+
+COPY package* ./
+RUN npm ci
+
 COPY src/ ./src
 
-RUN npm ci
 RUN npm run build:ts
 
 # ---
