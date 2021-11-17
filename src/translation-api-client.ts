@@ -17,6 +17,10 @@ interface ResponseBody {
   }
 }
 
+/**
+ * @returns The translation for the requested language.
+ * @throws For any response other than a 200.
+ */
 export async function translateText(
   text: string,
   language: Language,

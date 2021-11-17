@@ -28,6 +28,10 @@ export interface PokemonSpeciesResponseBody {
 }
 
 export interface PokeApiClient {
+  /**
+   * @returns The pokemon information, or undefined if the pokemon does not exist.
+   * @throws For any response other than a 200 or 404.
+   */
   getPokemonSpecies(
     pokemonNameOrId: string | number,
   ): Promise<PokemonSpeciesResponseBody | undefined>
