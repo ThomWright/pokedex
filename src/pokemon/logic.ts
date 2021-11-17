@@ -1,5 +1,6 @@
+import {Cache} from "../cache"
 import {Language} from "../translation-api-client"
-import {PokeApiClient} from "./poke-api-client"
+import {PokeApiClient, PokemonSpeciesResponseBody} from "./poke-api-client"
 import {PokemonResource} from "./types"
 
 export interface PokemonLogic {
@@ -13,14 +14,20 @@ export interface PokemonLogic {
 export function createPokemonLogic({
   pokeApiClient,
   translateText,
+  cache,
 }: {
   pokeApiClient: PokeApiClient
   translateText: (text: string, language: Language) => Promise<string>
+  cache: Cache<PokemonSpeciesResponseBody | undefined>
 }): PokemonLogic {
   async function getPokemonInfo(
     pokemonName: string,
   ): Promise<PokemonResource | undefined> {
-    const pokemonResponse = await pokeApiClient.getPokemonSpecies(pokemonName)
+    const pokemonResponse =
+      cache.get(pokemonName) ||
+      (await pokeApiClient.getPokemonSpecies(pokemonName))
+
+    cache.set(pokemonName, pokemonResponse)
 
     if (pokemonResponse == null) {
       return undefined

@@ -1,8 +1,11 @@
 import {RequestHandler, Router} from "express"
+import {createCache} from "../cache"
 import {translateText} from "../translation-api-client"
 import {createPokemonLogic} from "./logic"
-import {PokeApiClient} from "./poke-api-client"
+import {PokeApiClient, PokemonSpeciesResponseBody} from "./poke-api-client"
 import {PokemonResource} from "./types"
+
+const GlobalPokemonCache = createCache<PokemonSpeciesResponseBody>()
 
 const GetAPokemon: RequestHandler<
   {pokemon_name: string},
@@ -14,6 +17,7 @@ const GetAPokemon: RequestHandler<
     const logic = createPokemonLogic({
       pokeApiClient: PokeApiClient,
       translateText,
+      cache: GlobalPokemonCache,
     })
     const pokemon = await logic.getPokemonInfo(requestedPokemonName)
 
@@ -40,6 +44,7 @@ const GetATranslatedPokemon: RequestHandler<
     const logic = createPokemonLogic({
       pokeApiClient: PokeApiClient,
       translateText,
+      cache: GlobalPokemonCache,
     })
     const pokemon = await logic.getTranslatedPokemonInfo(requestedPokemonName)
 

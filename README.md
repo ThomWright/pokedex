@@ -76,6 +76,15 @@ That said, while building and running the application in a Docker container gave
 
 I would consider writing some in-process HTTP test using e.g. [superagent](https://www.npmjs.com/package/supertest), which could give similar coverage with a much quicker feedback cycle.
 
+### Caching
+
+I'm using a simple in-memory cache to store responses from the external APIs.
+
+Several decisions here:
+
+- caching the responses from the external APIs, rather than our own responses
+- caching empty responses (404s)
+
 ## Productionising
 
 A discussion of how I would prepare this for production, and also for future evolution (if necessary).
@@ -104,11 +113,15 @@ They should be handled in the logic, which could return e.g. `Promise<Result<Pok
 
 We could also better handle the case where we can't find an English `flavor_text`, or if other data coming from the API is null. It's easy to assume it'll always be there, but I don't know if it's guaranteed.
 
-For now, I made the executive decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
+For now, I made the decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
 
 ### Testing
 
 TODO:
+
+### Caching
+
+For production I'd consider using an external caching service e.g. Redis.
 
 ### TODO: Document these things
 
