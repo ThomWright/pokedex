@@ -1,57 +1,78 @@
-import {Language, translateText} from "../translation-api-client"
-import {getPokemonSpecies} from "./poke-api-client"
+import {Language} from "../translation-api-client"
+import {PokeApiClient} from "./poke-api-client"
 import {PokemonResource} from "./types"
 
-export async function getPokemonInfo(
-  pokemonName: string,
-): Promise<PokemonResource | undefined> {
-  const pokemonResponse = await getPokemonSpecies(pokemonName)
+export interface PokemonLogic {
+  getPokemonInfo(pokemonName: string): Promise<PokemonResource | undefined>
 
-  if (pokemonResponse == null) {
-    return undefined
-  }
-
-  const flavourTextEntry = pokemonResponse.flavor_text_entries.find(
-    (entry) => entry.language.name === "en",
-  )
-
-  if (flavourTextEntry == null) {
-    // TODO: handle this better
-    throw new Error("No English flavor text found")
-  }
-
-  const description = onSingleLine(flavourTextEntry.flavor_text)
-
-  return {
-    name: pokemonResponse.name,
-    description,
-    habitat: pokemonResponse.habitat?.name ?? null,
-    isLegendary: pokemonResponse.is_legendary,
-  }
+  getTranslatedPokemonInfo(
+    pokemonName: string,
+  ): Promise<PokemonResource | undefined>
 }
 
-export async function getTranslatedPokemonInfo(
-  pokemonName: string,
-): Promise<PokemonResource | undefined> {
-  const pokemon = await getPokemonInfo(pokemonName)
+export function createPokemonLogic({
+  pokeApiClient,
+  translateText,
+}: {
+  pokeApiClient: PokeApiClient
+  translateText: (text: string, language: Language) => Promise<string>
+}): PokemonLogic {
+  async function getPokemonInfo(
+    pokemonName: string,
+  ): Promise<PokemonResource | undefined> {
+    const pokemonResponse = await pokeApiClient.getPokemonSpecies(pokemonName)
 
-  if (pokemon == null) {
-    return undefined
+    if (pokemonResponse == null) {
+      return undefined
+    }
+
+    const flavourTextEntry = pokemonResponse.flavor_text_entries.find(
+      (entry) => entry.language.name === "en",
+    )
+
+    if (flavourTextEntry == null) {
+      // TODO: handle this better
+      throw new Error("No English flavor text found")
+    }
+
+    const description = onSingleLine(flavourTextEntry.flavor_text)
+
+    return {
+      name: pokemonResponse.name,
+      description,
+      habitat: pokemonResponse.habitat?.name ?? null,
+      isLegendary: pokemonResponse.is_legendary,
+    }
   }
 
-  const language: Language =
-    pokemon.habitat === "cave" || pokemon.isLegendary ? "yoda" : "shakespeare"
+  async function getTranslatedPokemonInfo(
+    pokemonName: string,
+  ): Promise<PokemonResource | undefined> {
+    const pokemon = await getPokemonInfo(pokemonName)
 
-  try {
-    const translatedText = await translateText(pokemon.description, language)
-    return {
-      ...pokemon,
-      description: translatedText,
+    if (pokemon == null) {
+      return undefined
     }
-  } catch (error) {
-    console.error("Unable to translate", error)
-    // Return original description if we were unable to translate the text
-    return pokemon
+
+    const language: Language =
+      pokemon.habitat === "cave" || pokemon.isLegendary ? "yoda" : "shakespeare"
+
+    try {
+      const translatedText = await translateText(pokemon.description, language)
+      return {
+        ...pokemon,
+        description: translatedText,
+      }
+    } catch (error) {
+      console.error("Unable to translate", error)
+      // Return original description if we were unable to translate the text
+      return pokemon
+    }
+  }
+
+  return {
+    getPokemonInfo,
+    getTranslatedPokemonInfo,
   }
 }
 

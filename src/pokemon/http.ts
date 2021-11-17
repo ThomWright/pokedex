@@ -1,5 +1,7 @@
 import {RequestHandler, Router} from "express"
-import {getPokemonInfo, getTranslatedPokemonInfo} from "./logic"
+import {translateText} from "../translation-api-client"
+import {createPokemonLogic} from "./logic"
+import {PokeApiClient} from "./poke-api-client"
 import {PokemonResource} from "./types"
 
 const GetAPokemon: RequestHandler<
@@ -9,7 +11,11 @@ const GetAPokemon: RequestHandler<
 > = async (req, res) => {
   const requestedPokemonName = req.params.pokemon_name
   try {
-    const pokemon = await getPokemonInfo(requestedPokemonName)
+    const logic = createPokemonLogic({
+      pokeApiClient: PokeApiClient,
+      translateText,
+    })
+    const pokemon = await logic.getPokemonInfo(requestedPokemonName)
 
     if (pokemon == null) {
       res.status(404)
@@ -31,7 +37,11 @@ const GetATranslatedPokemon: RequestHandler<
 > = async (req, res) => {
   const requestedPokemonName = req.params.pokemon_name
   try {
-    const pokemon = await getTranslatedPokemonInfo(requestedPokemonName)
+    const logic = createPokemonLogic({
+      pokeApiClient: PokeApiClient,
+      translateText,
+    })
+    const pokemon = await logic.getTranslatedPokemonInfo(requestedPokemonName)
 
     if (pokemon == null) {
       res.status(404)

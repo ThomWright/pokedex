@@ -55,6 +55,10 @@ This includes:
 
 Generally I wouldn't include extra data surplus to requirements, unless I had good reason to believe it would be useful. It's likely to be wasted effort, or worse: could be the wrong thing entirely. We might end up needing to support the decision indefinitely for backwards-compatibility reasons.
 
+### Not using an open source client library
+
+TODO: I had a look, it doesn't yet support TypeScript, which negates much of the benefit in this case.
+
 ### PokeAPI response types
 
 The [PokeAPI docs](https://pokeapi.co/docs/v2) do not specify which fields can be null, as far as I can see. `habitat` _can_ apparently be null, which is the only one I've observered.
@@ -71,6 +75,7 @@ So I decided spending some time setting up some API tests (or integration tests)
 That said, while building and running the application in a Docker container gave me confidence that it worked as a whole, the feedback cycle is too slow, so the DX isn't as good as I'd like.
 
 I would consider writing some in-process HTTP test using e.g. [superagent](https://www.npmjs.com/package/supertest), which could give similar coverage with a much quicker feedback cycle.
+
 ## Productionising
 
 A discussion of how I would prepare this for production, and also for future evolution (if necessary).
@@ -87,33 +92,23 @@ In an app this small, I was tempted to keep minimal structure, since it keeps th
 
 ### Error handling
 
-This is a big one I missed out. We should handle errors from the external APIs, including:
+This is a big one I missed out. Errors from the external APIs should be better handled, including:
 
 - network errors
 - HTTP error status codes (especially HTTP 429 Too Many Requests from the translation API)
 
-We should handle these in our logic, and return e.g. `Promise<Result<PokemonResource, SomeError>>`, where:
+They should be handled in the logic, which could return e.g. `Promise<Result<PokemonResource, SomeError>>`, where:
 
 - `Result<S, E>` is either a success or error value
 - `SomeError` contains enough information for the HTTP layer to return an appropriate status code
 
-We should also better handle the case where we can't find an English `flavor_text`, or if other data coming from the API is null. It's easy to assume it'll always be there, but I don't know if it's guaranteed.
+We could also better handle the case where we can't find an English `flavor_text`, or if other data coming from the API is null. It's easy to assume it'll always be there, but I don't know if it's guaranteed.
 
-TODO:
-For now, I just made the executive decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
+For now, I made the executive decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
 
 ### Testing
 
-#### Unit testing
-
-As noted, I have fairly sparse unit tests here.
-
-The code which I think should have some unit tests are the functions in `src/pokemon/logic.ts`:
-
-- `getPokemonInfo`
-- `getTranslatedPokemonInfo`
-
-To do so, I'd refactor to pass in mock API clients which return dummy data, to make this easier to test without external resources.
+TODO:
 
 ### TODO: Document these things
 

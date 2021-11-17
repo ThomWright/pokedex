@@ -15,7 +15,7 @@ interface NamedApiResource {
  *
  * @see https://pokeapi.co/docs/v2#pokemon-species
  */
-interface PokemonSpeciesResponseBody {
+export interface PokemonSpeciesResponseBody {
   id: number
   name: string
   is_legendary: boolean
@@ -27,9 +27,19 @@ interface PokemonSpeciesResponseBody {
   }>
 }
 
+export interface PokeApiClient {
+  getPokemonSpecies(
+    pokemonNameOrId: string | number,
+  ): Promise<PokemonSpeciesResponseBody | undefined>
+}
+
+export const PokeApiClient: PokeApiClient = {
+  getPokemonSpecies,
+}
+
 const POKE_API_BASE = "https://pokeapi.co/api/v2"
 
-export async function getPokemonSpecies(
+async function getPokemonSpecies(
   pokemonNameOrId: string | number,
 ): Promise<PokemonSpeciesResponseBody | undefined> {
   // See: https://github.com/sindresorhus/got/issues/1540
