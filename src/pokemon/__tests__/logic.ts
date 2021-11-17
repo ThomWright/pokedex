@@ -54,8 +54,9 @@ describe("Pokemon logic", () => {
 
         const logic = createPokemonLogic({
           pokeApiClient: mockApi,
+          pokemonCache: cache,
           translateText: translateTextFake,
-          cache,
+          translationCache: createCache<string>(),
         })
 
         const pokemon = await logic.getPokemonInfo("test")
@@ -86,8 +87,9 @@ describe("Pokemon logic", () => {
 
         const logic = createPokemonLogic({
           pokeApiClient: mockApi,
+          pokemonCache: cache,
           translateText: translateTextFake,
-          cache,
+          translationCache: createCache<string>(),
         })
 
         await logic.getPokemonInfo("test")
@@ -98,6 +100,74 @@ describe("Pokemon logic", () => {
   })
 
   describe("getTranslatedPokemonInfo", () => {
+    describe("caching", () => {
+      it("should fetch exiting translations from the cache", async () => {
+        const mockApi = createMockPokeApiClient({
+          id: 0,
+          name: "test",
+          flavor_text_entries: [
+            {
+              flavor_text: "Original",
+              language: {name: "en", url: "some_url"},
+              version: {name: "red", url: "some_url"},
+            },
+          ],
+          habitat: {name: "cave", url: "some_url"},
+          is_legendary: false,
+        })
+        const translateTextFake = sinon.fake.throws(
+          "Shouldn't call translation API",
+        )
+
+        const translationCache = createCache<string>()
+        translationCache.set("Original", "Cached translation")
+
+        const logic = createPokemonLogic({
+          pokeApiClient: mockApi,
+          pokemonCache: createCache(),
+          translateText: translateTextFake,
+          translationCache,
+        })
+
+        const pokemon = await logic.getTranslatedPokemonInfo("test")
+
+        expect(pokemon).to.have.property("description", "Cached translation")
+      })
+
+      it("should save fetched translations to the cache", async () => {
+        const mockApi = createMockPokeApiClient({
+          id: 0,
+          name: "test",
+          flavor_text_entries: [
+            {
+              flavor_text: "Original description",
+              language: {name: "en", url: "some_url"},
+              version: {name: "red", url: "some_url"},
+            },
+          ],
+          habitat: {name: "cave", url: "some_url"},
+          is_legendary: false,
+        })
+        const translateTextFake = sinon.fake.returns("Translated")
+
+        const translationCache = createCache<string>()
+
+        const logic = createPokemonLogic({
+          pokeApiClient: mockApi,
+          pokemonCache: createCache(),
+          translateText: translateTextFake,
+          translationCache,
+        })
+
+        await logic.getTranslatedPokemonInfo("test")
+
+        expect(
+          translationCache.get("Original description"),
+          "key in translation cache",
+        ).to.exist
+      })
+    })
+
     describe("translation", () => {
       context("pokemon's habitat is cave", () => {
         it("should apply Yoda translation", async () => {
@@ -118,8 +188,9 @@ describe("Pokemon logic", () => {
 
           const logic = createPokemonLogic({
             pokeApiClient: mockApi,
+            pokemonCache: createCache(),
             translateText: translateTextFake,
-            cache: createCache(),
+            translationCache: createCache<string>(),
           })
 
           const pokemon = await logic.getTranslatedPokemonInfo("test")
@@ -152,8 +223,9 @@ describe("Pokemon logic", () => {
 
           const logic = createPokemonLogic({
             pokeApiClient: mockApi,
+            pokemonCache: createCache(),
             translateText: translateTextFake,
-            cache: createCache(),
+            translationCache: createCache<string>(),
           })
 
           const pokemon = await logic.getTranslatedPokemonInfo("test")
@@ -186,8 +258,9 @@ describe("Pokemon logic", () => {
 
           const logic = createPokemonLogic({
             pokeApiClient: mockApi,
+            pokemonCache: createCache(),
             translateText: translateTextFake,
-            cache: createCache(),
+            translationCache: createCache<string>(),
           })
 
           const pokemon = await logic.getTranslatedPokemonInfo("test")
@@ -222,8 +295,9 @@ describe("Pokemon logic", () => {
 
           const logic = createPokemonLogic({
             pokeApiClient: mockApi,
+            pokemonCache: createCache(),
             translateText: translateTextFake,
-            cache: createCache(),
+            translationCache: createCache<string>(),
           })
 
           const pokemon = await logic.getTranslatedPokemonInfo("test")

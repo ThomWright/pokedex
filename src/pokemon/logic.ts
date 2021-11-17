@@ -1,5 +1,5 @@
-import {Cache} from "../cache"
-import {Language} from "../translation-api-client"
+import {Cache, createCache} from "../cache"
+import {Language, translateText} from "../translation-api-client"
 import {PokeApiClient, PokemonSpeciesResponseBody} from "./poke-api-client"
 import {PokemonResource} from "./types"
 
@@ -11,23 +11,39 @@ export interface PokemonLogic {
   ): Promise<PokemonResource | undefined>
 }
 
+const GlobalPokemonCache = createCache<PokemonSpeciesResponseBody>()
+const GlobalTranslationCache = createCache<string>()
+
+/**
+ * A singleton with global caches, for convenience.
+ */
+export const DefaultPokemonLogic = createPokemonLogic({
+  pokeApiClient: PokeApiClient,
+  pokemonCache: GlobalPokemonCache,
+  translateText,
+  translationCache: GlobalTranslationCache,
+})
+
 export function createPokemonLogic({
   pokeApiClient,
+  pokemonCache,
   translateText,
-  cache,
+  translationCache,
 }: {
   pokeApiClient: PokeApiClient
+  pokemonCache: Cache<PokemonSpeciesResponseBody | undefined>
   translateText: (text: string, language: Language) => Promise<string>
-  cache: Cache<PokemonSpeciesResponseBody | undefined>
+  translationCache: Cache<string>
 }): PokemonLogic {
   async function getPokemonInfo(
     pokemonName: string,
   ): Promise<PokemonResource | undefined> {
     const pokemonResponse =
-      cache.get(pokemonName) ||
+      pokemonCache.get(pokemonName) ||
       (await pokeApiClient.getPokemonSpecies(pokemonName))
 
-    cache.set(pokemonName, pokemonResponse)
+    // Deliberately cache empty responses, since those are 404s
+    pokemonCache.set(pokemonName, pokemonResponse)
 
     if (pokemonResponse == null) {
       return undefined
@@ -65,7 +81,11 @@ export function createPokemonLogic({
       pokemon.habitat === "cave" || pokemon.isLegendary ? "yoda" : "shakespeare"
 
     try {
-      const translatedText = await translateText(pokemon.description, language)
+      const translatedText =
+        translationCache.get(pokemon.description) ||
+        (await translateText(pokemon.description, language))
+      translationCache.set(pokemon.description, translatedText)
+
       return {
         ...pokemon,
         description: translatedText,

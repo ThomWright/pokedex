@@ -1,11 +1,6 @@
 import {RequestHandler, Router} from "express"
-import {createCache} from "../cache"
-import {translateText} from "../translation-api-client"
-import {createPokemonLogic} from "./logic"
-import {PokeApiClient, PokemonSpeciesResponseBody} from "./poke-api-client"
+import {DefaultPokemonLogic} from "./logic"
 import {PokemonResource} from "./types"
-
-const GlobalPokemonCache = createCache<PokemonSpeciesResponseBody>()
 
 const GetAPokemon: RequestHandler<
   {pokemon_name: string},
@@ -14,12 +9,9 @@ const GetAPokemon: RequestHandler<
 > = async (req, res) => {
   const requestedPokemonName = req.params.pokemon_name
   try {
-    const logic = createPokemonLogic({
-      pokeApiClient: PokeApiClient,
-      translateText,
-      cache: GlobalPokemonCache,
-    })
-    const pokemon = await logic.getPokemonInfo(requestedPokemonName)
+    const pokemon = await DefaultPokemonLogic.getPokemonInfo(
+      requestedPokemonName,
+    )
 
     if (pokemon == null) {
       res.status(404)
@@ -41,12 +33,9 @@ const GetATranslatedPokemon: RequestHandler<
 > = async (req, res) => {
   const requestedPokemonName = req.params.pokemon_name
   try {
-    const logic = createPokemonLogic({
-      pokeApiClient: PokeApiClient,
-      translateText,
-      cache: GlobalPokemonCache,
-    })
-    const pokemon = await logic.getTranslatedPokemonInfo(requestedPokemonName)
+    const pokemon = await DefaultPokemonLogic.getTranslatedPokemonInfo(
+      requestedPokemonName,
+    )
 
     if (pokemon == null) {
       res.status(404)

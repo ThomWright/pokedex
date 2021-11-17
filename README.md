@@ -80,10 +80,7 @@ I would consider writing some in-process HTTP test using e.g. [superagent](https
 
 I'm using a simple in-memory cache to store responses from the external APIs.
 
-Several decisions here:
-
-- caching the responses from the external APIs, rather than our own responses
-- caching empty responses (404s)
+Since the descriptions we're translating are small, I didn't bother hashing the input for the cache keys.
 
 ## Productionising
 
