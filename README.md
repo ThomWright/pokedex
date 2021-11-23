@@ -50,13 +50,23 @@ This includes:
 - unit tests
 - generating a version.json file containing the git short hash (useful for sanity checking!)
 
+### Structure
+
+Normally I favour structuring services by [separating by feature (as opposed to type or layer)](https://phauer.com/2020/package-by-feature/) at a high level, and within each feature having several layers:
+
+- Transport - transport specific code and little else, e.g. defining HTTP APIs
+- Business logic - reusable logic, no transport specific code here
+- Persistence - Data storage code, e.g. SQL, transactions
+
+In an app this small, I was tempted to keep minimal structure, since it keeps things concise and readable. A little structure felt appropriate though. It sets a direction for future evolution.
+
 ### Returning minimum data
 
 Generally I wouldn't include extra data surplus to requirements, unless I had good reason to believe it would be useful. It's likely to be wasted effort, or worse: could be the wrong thing entirely. We might end up needing to support the decision indefinitely for backwards-compatibility reasons.
 
 ### Not using an open source client library
 
-I had a look, it doesn't yet support TypeScript, which negates much of the benefit in this case.
+I had a look, and it might have been worth using, but since it doesn't yet support TypeScript I think I wouldn't have found enough benefit from it. Normally I'd opt to use existing libraries if they're good enough quality (whatever "good enough" means in a given context!).
 
 ### PokeAPI response types
 
@@ -70,7 +80,7 @@ I started with minimal unit tests, since I figured the most risk here is at the 
 - integrating with the external APIs
 - making sure the thing runs at all!
 
-So I decided spending some time setting up some API tests (or integration tests) was a worthwhile investment of my time.
+So I decided spending some time setting up some API tests (or integration tests, I'm using the terms interchangably) was a worthwhile investment of my time.
 
 Later, as I wrote more logic, I decided I wanted more unit tests. I wanted a quicker feedback cycle and less reliance on external dependencies. I refactored to make this easier.
 
@@ -94,31 +104,21 @@ Having worked largely with Kubernetes in the recent past, I'm not familiar with 
 
 A discussion of what I would consider when preparing this for production. Some of these assume the project will keep growing and evolving.
 
-### Structure
-
-Normally I favour structuring services by [separating by feature (as opposed to type or layer)](https://phauer.com/2020/package-by-feature/) at a high level, and within each feature having several layers:
-
-- Transport - transport specific code and little else, e.g. defining HTTP APIs
-- Business logic - reusable logic, no transport specific code here
-- Persistence - Data storage code, e.g. SQL, transactions
-
-In an app this small, I was tempted to keep minimal structure, since it keeps things concise and readable. A little structure felt appropriate though. It sets a direction for future evolution.
-
 ### Error handling
 
-This is a big one I missed out. Errors from the external APIs should be better handled, including:
+This is a big one I intentionally glossed over. Errors from the external APIs should probably be better handled, including:
 
 - network errors
 - HTTP error status codes (especially HTTP 429 Too Many Requests from the translation API)
 
-They should be handled in the logic, which could return e.g. `Promise<Result<PokemonResource, SomeError>>`, where:
+I'd handle these in the logic, which could return e.g. `Promise<Result<PokemonResource, SomeError>>`, where:
 
 - `Result<S, E>` is either a success or error value
 - `SomeError` contains enough information for the HTTP layer to return an appropriate status code
 
 We could also better handle the case where we can't find an English `flavor_text`, or if other data coming from the API is null. It's easy to assume it'll always be there, but I don't know if it's guaranteed.
 
-For now, I made the decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500.
+For now, I made the decision to just throw if any of these errors happen, catch them in the HTTP handlers and return 500. I'm actually tempted to say this is maybe OK here, but happy to discuss!
 
 ### Testing
 
@@ -132,7 +132,7 @@ For production I'd probably choose to use an external caching service e.g. Redis
 
 ### Type Safety
 
-I would generally do type-checking/validation on input types (or generally, any data from an external system). This includes inputs to HTTP request handlers, as well as responses from the external APIs.
+I would generally do type-checking/validation on input types (or any data from an external system). This includes inputs to HTTP request handlers, configuration from environment variables, as well as responses from the external APIs.
 
 ### CI
 
@@ -140,7 +140,7 @@ There's no CI here. Some kind of build/test/deploy pipeline would be a prerequis
 
 ### Graceful shutdown
 
-I should look up how Express shuts down when it receives a termination signal. Pretty sure it should shut down gracefully, letting in-flight requests finish first.
+I believe application code is needed to ensure the Express server shuts down gracefully, so that it stops accepting new connections and lets in-flight requests finish before shutting down.
 
 ### Observability
 
