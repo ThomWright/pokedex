@@ -48,7 +48,6 @@ This includes:
 - linting
 - formatting
 - unit tests
-- API tests (start the service and test it, black box style)
 - generating a version.json file containing the git short hash (useful for sanity checking!)
 
 ### Returning minimum data
