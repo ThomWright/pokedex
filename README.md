@@ -29,7 +29,7 @@ Or just using Node.js directly:
 
 ### Test
 
-Sanity check: `curl localhost:3000/pokemon/ditto` TODO:
+Sanity check: `curl localhost:3000/pokemon/ditto`
 
 Run the tests:
 
@@ -57,7 +57,7 @@ Generally I wouldn't include extra data surplus to requirements, unless I had go
 
 ### Not using an open source client library
 
-TODO: I had a look, it doesn't yet support TypeScript, which negates much of the benefit in this case.
+I had a look, it doesn't yet support TypeScript, which negates much of the benefit in this case.
 
 ### PokeAPI response types
 
@@ -65,16 +65,15 @@ The [PokeAPI docs](https://pokeapi.co/docs/v2) do not specify which fields can b
 
 ### Testing
 
-I have written minimal unit tests. There is more code I'd like to cover with tests (see below), but I figured the most risk here is at the integration points:
+I started with minimal unit tests, since I figured the most risk here is at the integration points:
 
 - our own exposed HTTP APIs
 - integrating with the external APIs
+- making sure the thing runs at all!
 
-So I decided spending some time setting up some API tests (or integration tests) was a better investment of my time.
+So I decided spending some time setting up some API tests (or integration tests) was a worthwhile investment of my time.
 
-That said, while building and running the application in a Docker container gave me confidence that it worked as a whole, the feedback cycle is too slow, so the DX isn't as good as I'd like.
-
-I would consider writing some in-process HTTP test using e.g. [superagent](https://www.npmjs.com/package/supertest), which could give similar coverage with a much quicker feedback cycle.
+Later, as I wrote more logic, I decided I wanted more unit tests. I wanted a quicker feedback cycle and less reliance on external dependencies. I refactored to make this easier.
 
 ### Caching
 
@@ -82,9 +81,19 @@ I'm using a simple in-memory cache to store responses from the external APIs.
 
 Since the descriptions we're translating are small, I didn't bother hashing the input for the cache keys.
 
+I'm assuming the Pokemon data is fairly static, and translations are unlikely to change significantly (if at all), so I set a fairly long TTL of 24 hours. It can be difficult to set these things without real world traffic informing the decision!
+
+### Health checks
+
+I included a simple liveness health check to help with the integration tests.
+
+I see the intended semantics matching that of the Kubernetes liveness probes. If deploying into a Kubernetes environment and there was a difference between live and ready, I would implement a readiness health check as well.
+
+Having worked largely with Kubernetes in the recent past, I'm not familiar with how other similar systems would expect health checks to work, but this seems like a good start.
+
 ## Productionising
 
-A discussion of how I would prepare this for production, and also for future evolution (if necessary).
+A discussion of what I would consider when preparing this for production. Some of these assume the project will keep growing and evolving.
 
 ### Structure
 
@@ -114,47 +123,48 @@ For now, I made the decision to just throw if any of these errors happen, catch 
 
 ### Testing
 
-TODO:
+Given more time I would consider investigating writing some in-process HTTP tests using e.g. [superagent](https://www.npmjs.com/package/supertest), which could give good end-to-end internal coverage. I haven't used this for a long time, but curious to give it another go.
+
+I'd also look at mocking/stubbing the external HTTP dependencies. I'd prefer to not rely on them, particularly for CI, and especially given the fairly strict rate limiting on the translation API.
 
 ### Caching
 
-For production I'd consider using an external caching service e.g. Redis.
+For production I'd probably choose to use an external caching service e.g. Redis. In-process caching is fine for a quick prototype or PoC, but won't survive restarts and would be less suitable when running multiple replicas in production.
 
-### TODO: Document these things
+### Type Safety
 
-- better type safety
-  - inputs should be validated and type checked
-- health checks
-  - separate live/ready if necessary
-- CI
-- integration tests
-  - start the service using Docker
-  - test API calls work correctly
-  - consider mocking third-party dependencies (pros and cons!)
-- graceful shutdown
-- observability
-  - structured and correlated logging
-  - metrics
-  - tracing
-- configuration
-  - environment variables (and/or a `.env`, using `dotenv`)
-  - validated and type checked (using `io-ts`)
-  - should configure e.g. port, host to bind to, external API host names
-- tests
-  - the tests we want highly depend on what kind of code we're writing
-  - unit, integration, E2E, contract, property...
-- license checking
-  - have we used any libraries with problematic GPL licenses?
-- structure
-  - if this was bigger, with more features and/or more non-HTTP business logic, then split up appropriately
-- cache responses from PokeAPI
-  - and responses from the translation API
-  - decrease chance of rate limiting
-  - assume data relatively static, long TTL
-  - start in-process, then move to e.g. Redis
-- use client library?
-  - has built in caching, but no types (yet!)
-- better error handling!
-- documentation
-  - API docs
-  - internal docs, e.g. structure, purpose, how the tests work etc.
+I would generally do type-checking/validation on input types (or generally, any data from an external system). This includes inputs to HTTP request handlers, as well as responses from the external APIs.
+
+### CI
+
+There's no CI here. Some kind of build/test/deploy pipeline would be a prerequisite for production, whatever form that might take.
+
+### Graceful shutdown
+
+I should look up how Express shuts down when it receives a termination signal. Pretty sure it should shut down gracefully, letting in-flight requests finish first.
+
+### Observability
+
+I'd want the service to be observable, including:
+
+- structured and correlated logging
+- metrics, including:
+  - request rate
+  - request duration
+  - error rate
+- tracing
+
+Note: I should probably fix all the lint warnings about using `console.log`, but I figured I'd choose to remove these at some point anyway!
+
+### Documentation
+
+Some API docs would be nice, using something like Swagger, but probably not essential.
+
+### Configuration
+
+I'd like to add type checked configuration (possibly using e.g. `io-ts`), probably using environment variables.
+
+The most obvious bits of configation for what's there so far would be:
+
+- the port to bind to
+- external API host names (useful for testing)
