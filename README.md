@@ -1,6 +1,6 @@
 # Pokemon
 
-A simple service which serves up information about Pokemon, included translated descriptions.
+A simple service which serves up information about Pokemon, including translated descriptions.
 
 ## Running instructions
 
@@ -66,7 +66,7 @@ Generally I wouldn't include extra data surplus to requirements, unless I had go
 
 ### Not using an open source client library
 
-I had a look, and it might have been worth using, but since it doesn't yet support TypeScript I think I wouldn't have found enough benefit from it. Normally I'd opt to use existing libraries if they're good enough quality (whatever "good enough" means in a given context!).
+I had a look, found one which looked decent which might have been worth using, but since it doesn't yet support TypeScript I think I wouldn't have found enough benefit from it. Normally I'd opt to use existing libraries if they're good enough quality (whatever "good enough" means in a given context!).
 
 ### PokeAPI response types
 
@@ -157,7 +157,7 @@ Note: I should probably fix all the lint warnings about using `console.log`, but
 
 ### Documentation
 
-Some API docs would be nice, using something like Swagger, but probably not essential.
+Some API docs would be nice, possibly using something like Swagger, especially if this was a public-facing API.
 
 ### Configuration
 
